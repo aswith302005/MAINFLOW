@@ -1,0 +1,36 @@
+# Import the Pandas library
+import pandas as pd
+
+# Create a sample DataFrame
+data = {'Name': ['John', 'Jane', 'Bob', 'Alice'],
+        'Age': [25, 30, 35, 40],
+        'City': ['New York', 'Los Angeles', 'Chicago', 'Miami']}
+
+df = pd.DataFrame(data)
+
+# Display the DataFrame
+print(df)
+
+# Rename a column
+df = df.rename(columns={'Name': 'Full Name'})
+print(df)
+
+# Select a specific column
+ages = df['Age']
+print(ages)
+
+# Filter the DataFrame based on a condition
+older_than_30 = df[df['Age'] > 30]
+print(older_than_30)
+
+# Add a new column
+df['Salary'] = [50000, 60000, 70000, 80000]
+print(df)
+
+# Sort the DataFrame by a column
+sorted_df = df.sort_values(by='Age')
+print(sorted_df)
+
+# Group the DataFrame by a column and apply a function
+grouped_df = df.groupby('City')['Salary'].mean()
+print(grouped_df)

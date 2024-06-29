@@ -1,0 +1,57 @@
+
+import requests
+from bs4 import BeautifulSoup
+from urllib.parse import urljoin
+
+# Function to get HTML content from a URL
+def get_html(url):
+    try:
+        response = requests.get(url)
+        response.raise_for_status()  # Check if the request was successful
+        return response.text
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching {url}: {e}")
+        return None
+
+# Function to parse HTML content using BeautifulSoup
+def parse_html(html):
+    return BeautifulSoup(html, 'html.parser')
+
+# Function to extract and print text from paragraphs
+def extract_text(soup):
+    paragraphs = soup.find_all('p')
+    for p in paragraphs:
+        print(p.get_text())
+
+# Function to extract and print absolute links
+def extract_links(soup, base_url):
+    links = soup.find_all('a', href=True)
+    for link in links:
+        absolute_url = urljoin(base_url, link['href'])
+        print(absolute_url)
+
+# Function to extract and print absolute image sources
+def extract_images(soup, base_url):
+    images = soup.find_all('img', src=True)
+    for img in images:
+        absolute_url = urljoin(base_url, img['src'])
+        print(absolute_url)
+
+# Main function to run the scraper
+def main():
+    url = 'https://books.toscrape.com/'  # Replace with the URL you want to scrape
+    html_content = get_html(url)
+    if html_content:
+        soup = parse_html(html_content)
+        
+        print("Text content:")
+        extract_text(soup)
+        
+        print("\nLinks:")
+        extract_links(soup, url)
+        
+        print("\nImages:")
+        extract_images(soup, url)
+
+if __name__ == "__main__":
+    main()

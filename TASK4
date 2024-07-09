@@ -1,0 +1,44 @@
+def add(a, b):
+    return a + b
+
+def subtract(a, b):
+    return a - b
+
+def multiply(a, b):
+    return a * b
+
+def divide(a, b):
+    if b == 0:
+        return "Error! Division by zero."
+    return a / b
+
+def get_number(prompt):
+    while True:
+        try:
+            return float(input(prompt))
+        except ValueError:
+            print("Invalid input. Please enter a number.")
+
+def get_operation():
+    operations = {
+        '+': add,
+        '-': subtract,
+        '*': multiply,
+        '/': divide
+    }
+    while True:
+        op = input("Enter operation (+, -, *, /): ")
+        if op in operations:
+            return operations[op]
+        print("Invalid operation. Please enter one of +, -, *, /.")
+
+def main():
+    print("Simple Command-Line Calculator")
+    num1 = get_number("Enter first number: ")
+    num2 = get_number("Enter second number: ")
+    operation = get_operation()
+    result = operation(num1, num2)
+    print(f"Result: {result}")
+
+if __name__ == "__main__":
+    main()

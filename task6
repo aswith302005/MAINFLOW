@@ -1,0 +1,128 @@
+!pip install reportlab
+
+
+import tkinter as tk
+from tkinter import messagebox
+import sqlite3
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+
+# Database setup
+conn = sqlite3.connect('billing.db')
+c = conn.cursor()
+
+# Create tables
+c.execute('''CREATE TABLE IF NOT EXISTS products (
+                product_id INTEGER PRIMARY KEY,
+                product_name TEXT,
+                price REAL,
+                quantity INTEGER
+            )''')
+
+c.execute('''CREATE TABLE IF NOT EXISTS customers (
+                customer_id INTEGER PRIMARY KEY,
+                customer_name TEXT,
+                contact_info TEXT
+            )''')
+
+c.execute('''CREATE TABLE IF NOT EXISTS transactions (
+                transaction_id INTEGER PRIMARY KEY,
+                customer_id INTEGER,
+                date TEXT,
+                total_amount REAL,
+                FOREIGN KEY (customer_id) REFERENCES customers (customer_id)
+            )''')
+
+c.execute('''CREATE TABLE IF NOT EXISTS transaction_details (
+                transaction_detail_id INTEGER PRIMARY KEY,
+                transaction_id INTEGER,
+                product_id INTEGER,
+                quantity INTEGER,
+                price REAL,
+                FOREIGN KEY (transaction_id) REFERENCES transactions (transaction_id),
+                FOREIGN KEY (product_id) REFERENCES products (product_id)
+            )''')
+
+conn.commit()
+
+# GUI setup
+class BillingApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Billing Software")
+
+        # Product form
+        self.product_name_var = tk.StringVar()
+        self.price_var = tk.DoubleVar()
+        self.quantity_var = tk.IntVar()
+
+        tk.Label(root, text="Product Name").grid(row=0, column=0)
+        tk.Entry(root, textvariable=self.product_name_var).grid(row=0, column=1)
+
+        tk.Label(root, text="Price").grid(row=1, column=0)
+        tk.Entry(root, textvariable=self.price_var).grid(row=1, column=1)
+
+        tk.Label(root, text="Quantity").grid(row=2, column=0)
+        tk.Entry(root, textvariable=self.quantity_var).grid(row=2, column=1)
+
+        tk.Button(root, text="Add Product", command=self.add_product).grid(row=3, column=0, columnspan=2)
+
+        # Customer form
+        self.customer_name_var = tk.StringVar()
+        self.contact_info_var = tk.StringVar()
+
+        tk.Label(root, text="Customer Name").grid(row=4, column=0)
+        tk.Entry(root, textvariable=self.customer_name_var).grid(row=4, column=1)
+
+        tk.Label(root, text="Contact Info").grid(row=5, column=0)
+        tk.Entry(root, textvariable=self.contact_info_var).grid(row=5, column=1)
+
+        tk.Button(root, text="Add Customer", command=self.add_customer).grid(row=6, column=0, columnspan=2)
+
+        # Invoice generation
+        tk.Button(root, text="Generate Invoice", command=self.generate_invoice).grid(row=7, column=0, columnspan=2)
+
+    def add_product(self):
+        product_name = self.product_name_var.get()
+        price = self.price_var.get()
+        quantity = self.quantity_var.get()
+
+        c.execute("INSERT INTO products (product_name, price, quantity) VALUES (?, ?, ?)",
+                  (product_name, price, quantity))
+        conn.commit()
+        messagebox.showinfo("Success", "Product added successfully!")
+
+    def add_customer(self):
+        customer_name = self.customer_name_var.get()
+        contact_info = self.contact_info_var.get()
+
+        c.execute("INSERT INTO customers (customer_name, contact_info) VALUES (?, ?)",
+                  (customer_name, contact_info))
+        conn.commit()
+        messagebox.showinfo("Success", "Customer added successfully!")
+
+    def generate_invoice(self):
+        # For simplicity, we'll generate a dummy invoice
+        c.execute("SELECT * FROM customers")
+        customers = c.fetchall()
+        c.execute("SELECT * FROM products")
+        products = c.fetchall()
+
+        invoice = canvas.Canvas("invoice.pdf", pagesize=letter)
+        invoice.setFont("Helvetica", 12)
+        invoice.drawString(100, 750, "Invoice")
+        invoice.drawString(100, 730, "Customer Name: " + customers[0][1])
+        invoice.drawString(100, 710, "Contact Info: " + customers[0][2])
+        invoice.drawString(100, 690, "Products:")
+        y = 670
+        for product in products:
+            invoice.drawString(100, y, f"{product[1]} - {product[2]} x {product[3]}")
+            y -= 20
+
+        invoice.save()
+        messagebox.showinfo("Success", "Invoice generated successfully!")
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = BillingApp(root)
+    root.mainloop()
